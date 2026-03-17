@@ -36,11 +36,7 @@ export class MatrixChannel implements Channel {
   private homeserverUrl: string;
   private accessToken: string;
 
-  constructor(
-    opts: ChannelOpts,
-    homeserverUrl: string,
-    accessToken: string,
-  ) {
+  constructor(opts: ChannelOpts, homeserverUrl: string, accessToken: string) {
     this.opts = opts;
     this.homeserverUrl = homeserverUrl;
     this.accessToken = accessToken;
@@ -223,7 +219,10 @@ export class MatrixChannel implements Channel {
       if (lastSync) {
         const lastSyncTime = new Date(lastSync).getTime();
         if (Date.now() - lastSyncTime < GROUP_SYNC_INTERVAL_MS) {
-          logger.debug({ lastSync }, 'Skipping Matrix room sync - synced recently');
+          logger.debug(
+            { lastSync },
+            'Skipping Matrix room sync - synced recently',
+          );
           return;
         }
       }
@@ -316,10 +315,7 @@ interface MatrixEvent {
 }
 
 registerChannel('matrix', (opts: ChannelOpts) => {
-  const secrets = readEnvFile([
-    'MATRIX_ACCESS_TOKEN',
-    'MATRIX_HOMESERVER_URL',
-  ]);
+  const secrets = readEnvFile(['MATRIX_ACCESS_TOKEN', 'MATRIX_HOMESERVER_URL']);
 
   const accessToken =
     process.env.MATRIX_ACCESS_TOKEN || secrets.MATRIX_ACCESS_TOKEN;
@@ -327,7 +323,9 @@ registerChannel('matrix', (opts: ChannelOpts) => {
     process.env.MATRIX_HOMESERVER_URL || secrets.MATRIX_HOMESERVER_URL;
 
   if (!accessToken || !homeserverUrl) {
-    logger.debug('Matrix channel not configured (missing MATRIX_ACCESS_TOKEN or MATRIX_HOMESERVER_URL)');
+    logger.debug(
+      'Matrix channel not configured (missing MATRIX_ACCESS_TOKEN or MATRIX_HOMESERVER_URL)',
+    );
     return null;
   }
 
