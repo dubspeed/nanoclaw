@@ -1,0 +1,9 @@
+[global]
+server_name = "localhost"
+database_path = "/var/lib/conduwuit"
+port = [6167]
+address = ["0.0.0.0"]
+allow_registration = false
+allow_federation = false
+max_request_size = 20000000
+trusted_servers = ["matrix.org"]

@@ -26,6 +26,7 @@ import {
   stopContainer,
 } from './container-runtime.js';
 import { detectAuthMode } from './credential-proxy.js';
+import { readEnvFile } from './env.js';
 import { validateAdditionalMounts } from './mount-security.js';
 import { RegisteredGroup } from './types.js';
 
@@ -139,6 +140,28 @@ function buildVolumeMounts(
             // https://code.claude.com/docs/en/memory#manage-auto-memory
             CLAUDE_CODE_DISABLE_AUTO_MEMORY: '0',
           },
+          // Auto-approve MCP servers defined in .mcp.json
+          enableAllProjectMcpServers: true,
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+  }
+
+  // Ensure group has a .mcp.json with shared MCP servers (e.g. email)
+  const groupMcpFile = path.join(groupDir, '.mcp.json');
+  if (!fs.existsSync(groupMcpFile)) {
+    fs.writeFileSync(
+      groupMcpFile,
+      JSON.stringify(
+        {
+          mcpServers: {
+            email: {
+              command: 'email-mcp',
+              args: ['stdio'],
+            },
+          },
         },
         null,
         2,
@@ -236,6 +259,21 @@ function buildContainerArgs(
     args.push('-e', 'ANTHROPIC_API_KEY=placeholder');
   } else {
     args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=placeholder');
+  }
+
+  // Inject shared service credentials (e.g. email) into containers.
+  // These are the agent's own credentials, not user secrets.
+  const sharedCreds = readEnvFile([
+    'MCP_EMAIL_ADDRESS',
+    'MCP_EMAIL_PASSWORD',
+    'MCP_EMAIL_IMAP_HOST',
+    'MCP_EMAIL_SMTP_HOST',
+    'MCP_EMAIL_IMAP_PORT',
+    'MCP_EMAIL_SMTP_PORT',
+    'MCP_EMAIL_FULL_NAME',
+  ]);
+  for (const [key, value] of Object.entries(sharedCreds)) {
+    args.push('-e', `${key}=${value}`);
   }
 
   // Runtime-specific args for host gateway resolution

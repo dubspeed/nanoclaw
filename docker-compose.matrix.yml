@@ -1,0 +1,17 @@
+name: matrix-homeserver
+services:
+  conduwuit:
+    container_name: matrix-conduwuit
+    image: ghcr.io/continuwuity/continuwuity:latest
+    restart: unless-stopped
+    ports:
+      - "6167:6167"
+    volumes:
+      - conduwuit-db:/var/lib/conduwuit
+      - ./conduwuit.toml:/etc/conduwuit.toml:ro
+    environment:
+      CONDUWUIT_CONFIG: /etc/conduwuit.toml
+volumes:
+  conduwuit-db:
+    name: nanoclaw_conduwuit-db
+    external: true
