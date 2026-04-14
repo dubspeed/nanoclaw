@@ -25,6 +25,7 @@ interface RegisterArgs {
 }
 
 function parseArgs(args: string[]): RegisterArgs {
+  let triggerExplicit = false;
   const result: RegisterArgs = {
     jid: '',
     name: '',
@@ -55,6 +56,11 @@ function parseArgs(args: string[]): RegisterArgs {
         break;
       case '--no-trigger-required':
         result.requiresTrigger = false;
+        triggerExplicit = true;
+        break;
+      case '--trigger-required':
+        result.requiresTrigger = true;
+        triggerExplicit = true;
         break;
       case '--is-main':
         result.isMain = true;
@@ -63,6 +69,11 @@ function parseArgs(args: string[]): RegisterArgs {
         result.assistantName = args[++i] || 'Andy';
         break;
     }
+  }
+
+  // Matrix rooms default to no trigger (private rooms, not shared groups)
+  if (!triggerExplicit && result.channel === 'matrix') {
+    result.requiresTrigger = false;
   }
 
   return result;
